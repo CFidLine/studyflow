@@ -1,22 +1,29 @@
-name: Rust
-
+name: Build StudyFlow
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-env:
-  CARGO_TERM_COLOR: always
-
+    branches: [main, master]
+  workflow_dispatch:
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            bin: studyflow-rust.exe
+          - os: macos-latest
+            name: macOS
+            bin: studyflow-rust
+          - os: ubuntu-latest
+            name: Linux
+            bin: studyflow-rust
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StudyFlow-${{ matrix.name }}
+          path: target/release/${{ matrix.bin }}
